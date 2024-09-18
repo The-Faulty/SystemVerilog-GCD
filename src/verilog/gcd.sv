@@ -6,13 +6,13 @@
 	 ! gcd( 9,12) = 3
 	 ! gcd(18,12) = 6
 
-Commented code is the remains of my first attempt where it checks each possible
-	divisor instead of using the Euclidean algorithm
 *******************************************************************************/
 
 typedef enum logic[1:0] {
-    findGCD,
-    finished
+    IDLE,
+	START,
+	AGREATER,
+	BGREATER
 } state;
 
 module gcd 
@@ -20,87 +20,73 @@ module gcd
         parameter WIDTH = 8
     )
     (
-	    input  logic            clk_i, reset_i,   // global
-	    input  logic            valid_i,        // valid in
-	    input  logic [WIDTH-1:0]a_i, b_i,       // operands
-	    output logic [WIDTH-1:0]gcd_o,          // gcd output
-	    output logic            valid_o         // valid out
+	    input  logic            clk_i, reset_i,   	// global
+	    input  logic            valid_i,        	// valid in
+	    input  logic [WIDTH-1:0]a_i, b_i,       	// operands
+	    output logic [WIDTH-1:0]gcd_o,          	// gcd output
+	    output logic            valid_o         	// valid out
     );
     
-	logic [WIDTH-1:0] a, b;	//, c, original_a, original_b;
-	state current_state;
+	logic [WIDTH-1:0] a, b;
+	state current_state, next_state;
 
-	always @ (posedge clk_i)
+	always_ff @ (posedge clk_i)
+	begin
+		if (reset_i == 1'b1)
+			current_state <= IDLE;
+		else
+			current_state <= next_state;
+	end
+	
+
+	always_comb begin
+		next_state = current_state;	
+
+		case (current_state)
+			IDLE:
+				if (valid_i)
+					next_state = START;
+			START, AGREATER, BGREATER:
+				if (a == 0 | b == 0 | a == b)
+					next_state = IDLE;
+				else if (a > b)
+					next_state = AGREATER;
+				else
+					next_state = BGREATER;
+		endcase
+	end
+
+	always_ff @ (posedge clk_i)
 	begin
 		if (reset_i == 1'b1) begin
 			valid_o <= 1'b0;
 			gcd_o <= 0;
 			a <= 0;
 			b <= 0;
-			//c <= 0;
-			current_state <= finished;
 		end
 		else begin
-			if (valid_i == 1'b1) begin
-				valid_o <= 1'b0;
-				gcd_o <= 0;
-				a <= a_i;
-				//original_a <= a_i;
-				b <= b_i;
-				//original_b <= b_i;
-				//c <= (a_i > b_i) ? b_i : a_i;
-				current_state <= findGCD;
-			end
-			else begin
-				if (current_state == findGCD) begin
-					if (a == 0) begin
-						gcd_o <= b;
+			case (next_state)
+				IDLE: begin
+					if (current_state == START) begin
+						gcd_o <= (a > b) ? a : b;
 						valid_o <= 1'b1;
-						current_state = finished;
 					end
-					else if (b == 0 | a == b) begin
-						gcd_o <= a;
+					else if (current_state == AGREATER | current_state == BGREATER) begin
+						gcd_o <= a;			// If previous state was AGREATER or BGREATER, then a should equal b
 						valid_o <= 1'b1;
-						current_state = finished;
 					end
-					else if (a > b) 
-						a <= a - b;
-					else
-						b <= b - a;
 				end
-				/*case(current_state)
-					checkA: begin
-						if (c <= 1) begin
-							valid_o <= 1'b1;
-							gcd_o <= c;
-							current_state <= finished;
-						end
-						else if (a == 0)
-							current_state <= checkB;
-						else if (a < a - c) begin
-							a <= original_a;
-							c <= c - 1;
-						end
-						else			// a > 0 and will not be negative
-							a <= a - c;
-					end
-					checkB: begin
-						if (b == 0) begin
-							gcd_o <= c;
-							valid_o <= 1'b1;
-							current_state <= finished;
-						end
-						else if (b < b - c) begin
-							a <= original_a;
-							b <= original_b;
-							c <= c - 1;
-							current_state <= checkA;
-						end
-						else 		// b > 0 and will not be negative
-							b <= b - c;
-					end	
-				endcase*/
-			end
+				START: begin
+					valid_o <= 1'b0;
+					gcd_o <= 0;
+					a <= a_i;
+					b <= b_i;
+				end
+				AGREATER:
+					a <= a - b;
+				BGREATER:
+					b <= b - a;
+			endcase
 		end
 	end
 endmodule
