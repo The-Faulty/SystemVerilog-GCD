@@ -1,0 +1,9 @@
+{"vcs1":{"timestamp_begin":1726509735.506227772, "rt":0.51, "ut":0.16, "st":0.16}}
+{"vcselab":{"timestamp_begin":1726509736.164658839, "rt":0.50, "ut":0.28, "st":0.12}}
+{"link":{"timestamp_begin":1726509736.782036919, "rt":0.41, "ut":0.17, "st":0.18}}
+{"SNPS_VCS_INTERNAL_ROOT_START_TIME": 1726509734.623844214}
+{"VCS_COMP_START_TIME": 1726509734.623844214}
+{"VCS_COMP_END_TIME": 1726509738.020015799}
+{"VCS_USER_OPTIONS": "-f gcd.include +v2k -R +lint=all -sverilog -full64 -timescale=1ns/10ps -debug_acc+pp+dmptf -debug_region+cell+encrypt -debug_access -l gcd.log +vpdfile+./gcd.vpd +define++SIM=1 +testname="}
+{"vcs1": {"peak_mem": 393596}}
+{"vcselab": {"peak_mem": 253844}}

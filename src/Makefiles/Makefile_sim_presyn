@@ -1,0 +1,47 @@
+#You should be in the "sim/behav/" directory
+
+#There should be a "$(TOPLEVEL).include" file in src/verilog/
+TOPLEVEL=gcd
+
+# For linking the source files to the "sim" directory
+# This path is relative to where you'll be running this, which is the sim/behav/ directory
+SRC_VERILOG=../../src/verilog
+
+#Defines statement for vcs
+VERILOG_DEFINES:=+SIM=1
+
+.DEFAULT_GOAL := vcs
+CURRENT_DIR := $(shell pwd)
+
+# Move all the verilog files from the source directory over to this simulation directory
+link_src:
+	rm -f *.sv
+	rm -f *.v
+	rm -f *.svh
+	rm -f *.include
+
+	ln -s $(SRC_VERILOG)/*.sv .
+#	ln -s $(SRC_VERILOG)/*.v .
+#	ln -s $(SRC_VERILOG)/*.svh .
+	ln -s $(SRC_VERILOG)/*.include .
+
+
+vcs:$(TOPLEVEL).include
+	vcs -f $(TOPLEVEL).include +v2k -R +lint=all -sverilog -full64 \
+		-timescale=1ns/10ps -debug_acc+pp+dmptf -debug_region+cell+encrypt \
+		-debug_access -l $(TOPLEVEL).log +vpdfile+./$(TOPLEVEL).vpd +define+$(VERILOG_DEFINES) +testname=$(TESTNAME)
+		# simv 
+	dve -full64 -vpd $(TOPLEVEL).vpd
+
+clean:
+	rm -rf DVEfiles
+	rm -rf *.log
+	rm -rf *.vpd
+	rm -rf ucli.key
+	rm -rf alib-52
+	rm -rf $(TOPLEVEL)
+	rm -rf simv.daidir
+	rm -rf csrc
+	rm -rf simv
+
+
